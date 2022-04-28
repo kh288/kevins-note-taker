@@ -28,6 +28,10 @@ app.get('/api/database', (req, res) => {
     console.info(`${req.method} request received to get reviews`);
 });
 
+app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, '/public/404.html'));
+})
+
 app.listen(PORT, () =>
     console.log(`Example app listening at http://localhost:${PORT}`)
 );
