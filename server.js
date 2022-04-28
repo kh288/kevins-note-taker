@@ -2,6 +2,7 @@ const express = require('express');
 const path = require('path');
 const fs = require('fs');
 const database = require('./db/db.json');
+const api = require("./public/assets/js/index.js")
 
 var app = express();
 var PORT = process.env.PORT || 3001;
@@ -10,6 +11,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.use(express.static('public'));
+app.use('/api', api);
 
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, '/public/index.html'));
