@@ -8,9 +8,9 @@ const app = express();
 
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
-
 app.use(express.static('public'));
 
+// Setup our port for hosting/local
 var PORT = process.env.PORT || 3001;
 
 // notes brings them to the notes.html file
@@ -25,10 +25,10 @@ app.get('/api/notes', (req, res) => {
     });
 });
 
-// POST request to add a review
+// POST request to add a note
 app.post('/api/notes', (req, res) => {
     // Log that a POST request was received
-    console.info(`${req.method} request received to add a review`);
+    console.info(`${req.method} request received to add a note`);
 
     const {
         title,
@@ -43,25 +43,21 @@ app.post('/api/notes', (req, res) => {
             text,
             id: randomUUID(),
         };
-
-        // Obtain existing reviews
+        // Read file from our database
         fs.readFile('./db/db.json', 'utf8', (error, data) => {
         if (error) {
             console.error(error);
         } else {
             // Convert string into JSON object
             const parsedNotes = JSON.parse(data);
-
-            // Add a new review
             parsedNotes.push(newNote);
-            reviews = parsedNotes;
             
             fs.writeFile('./db/db.json', 
                 JSON.stringify(parsedNotes, null, 4),
                 (writeErr) =>
                     writeErr
                     ? console.error(writeErr)
-                    : console.info('Successfully updated reviews!')
+                    : console.info('Successfully updated note!')
             );
         }
         });
