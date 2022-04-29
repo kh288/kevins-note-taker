@@ -4,14 +4,14 @@ const fs = require('fs');
 const database = require('./db/db.json');
 const { randomUUID } = require('crypto');
 
-var PORT = process.env.PORT || 3001;
-
 const app = express();
 
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
 app.use(express.static('public'));
+
+var PORT = process.env.PORT || 3001;
 
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, './public/index.html'));
@@ -38,40 +38,38 @@ app.post('/api/notes', (req, res) => {
     if (title && text) {
         // Variable for the object we will save
         const newNote = {
-        title,
-        text,
-        id: randomUUID(),
-    };
-
-    // Obtain existing reviews
-    fs.readFile('./db/db.json', 'utf8', (err, data) => {
-    if (err) {
-        console.error(err);
-    } else {
-        // Convert string into JSON object
-        const parsedNotes = JSON.parse(data);
-
-        // Add a new review
-        parsedNotes.push(newNote);
-        reviews = parsedNotes;
-        
-        fs.writeFile(
-        './db/db.json',
-        JSON.stringify(parsedNotes, null, 4),
-            (writeErr) =>
-                writeErr
-                ? console.error(writeErr)
-                : console.info('Successfully updated reviews!')
-            );
-        }
-    });
-
-        const response = {
-        status: 'success',
-        body: newNote,
+            title,
+            text,
+            id: randomUUID(),
         };
 
-        // res.json(parsedNotes);
+        // Obtain existing reviews
+        fs.readFile('./db/db.json', 'utf8', (error, data) => {
+        if (err) {
+            console.error(err);
+        } else {
+            // Convert string into JSON object
+            const parsedNotes = JSON.parse(data);
+
+            // Add a new review
+            parsedNotes.push(newNote);
+            reviews = parsedNotes;
+            
+            fs.writeFile('./db/db.json', 
+                JSON.stringify(parsedNotes, null, 4),
+                (writeErr) =>
+                    writeErr
+                    ? console.error(writeErr)
+                    : console.info('Successfully updated reviews!')
+            );
+        }
+        });
+
+        const response = {
+            status: 'success',
+            body: newNote,
+        };
+
         console.log(response);
         res.json(response);
     } else {
@@ -79,50 +77,27 @@ app.post('/api/notes', (req, res) => {
     }
 });
 
-// DELETE Route for a specific tip
-app.delete('/api/notes:id', (req, res) => {
-    const noteId = req.params.id;
-    readFromFile('./db/db.json')
-      .then((data) => JSON.parse(data))
-      .then((json) => {
-        // Make a new array of all tips except the one with the ID provided in the URL
-        const result = json.filter((id) => id.id !== noteId);
-  
-        // Save that array to the filesystem
-        writeToFile('./db/db.json', JSON.stringify(result));
-  
-        // Respond to the DELETE request
-        res.json(`Item ${noteId} has been deleted 🗑️`);
+// Delete Note
+app.delete('/api/notes/:id', (req, res) => {
+    // Get the id from the request params
+    let noteId = req.params.id;
+    // Read file to overwrite with an edited version
+    fs.readFile('./db/db.json', 'utf8', (err, data) => {
+        if (err) {
+            console.log(err);
+        }
+        let noteData = JSON.parse(data);
+        // Use the filter method to create a new array with all but the id we want to isolate out
+        var filteredNoteData = noteData.filter(function (note) {
+            return note.id != noteId;
+        })
+        // Write to notes to the file
+        fs.writeFile('./db/db.json', JSON.stringify(filteredNoteData, null, 4), (error) => {
+            error ? console.log(error) : console.log("Note Deleted!");
+        });
     });
+    res.end();
 });
-
-// // Delete Note
-// app.delete('/api/notes:id', (req, res) => {
-//     // Assign an id to a temp variable
-//     let id = req.params.id;
-//     // Read the db.json
-//     fs.readFile('.db/db.json', 'utf-8', (error, data) => {
-//         if (error) {
-//             console.log(error);
-//         }
-//         let noteData = JSON.parse(data);
-//         for (var i = 0; i < noteData.length; i++) {
-//             if (id === noteData[i].id) {
-//                 noteData.splice(i, 2);
-//                 fs.writeFile('.db/db.json', JSON.stringify(noteData, null, 4), (error) => {
-//                     if (error) {
-//                         console.log(error);
-//                     } else {
-//                         console.log('Deleted Note');
-//                     }
-//                 });
-//             }
-//         }
-
-//     });
-//     res.end();
-// });
-
 
 app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, './public/index.html'));
