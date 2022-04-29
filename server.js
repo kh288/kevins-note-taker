@@ -8,16 +8,23 @@ var PORT = process.env.PORT || 3001;
 
 const app = express();
 
-app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
+
 app.use(express.static('public'));
 
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, '/public/index.html'));
+    res.sendFile(path.join(__dirname, './public/index.html'));
+});
+
+app.get('/notes', (req, res) => {
+    res.sendFile(path.join(__dirname, './public/notes.html'));
 });
 
 app.get('/api/notes', (req, res) => {
-    res.sendFile(path.join(__dirname, '/public/notes.html'));
+    fs.readFile('./db/db.json', 'utf8', (error, data) => {
+        error ? console.log(error) : res.json(JSON.parse(data));
+    });
 });
 
 // POST request to add a review
@@ -64,6 +71,7 @@ app.post('/api/notes', (req, res) => {
         body: newNote,
         };
 
+        // res.json(parsedNotes);
         console.log(response);
         res.json(response);
     } else {
@@ -71,12 +79,53 @@ app.post('/api/notes', (req, res) => {
     }
 });
 
-app.get('/notes', (req, res) => {
-    res.sendFile(path.join(__dirname, '/public/notes.html'));
+// DELETE Route for a specific tip
+app.delete('/api/notes:id', (req, res) => {
+    const noteId = req.params.id;
+    readFromFile('./db/db.json')
+      .then((data) => JSON.parse(data))
+      .then((json) => {
+        // Make a new array of all tips except the one with the ID provided in the URL
+        const result = json.filter((id) => id.id !== noteId);
+  
+        // Save that array to the filesystem
+        writeToFile('./db/db.json', JSON.stringify(result));
+  
+        // Respond to the DELETE request
+        res.json(`Item ${noteId} has been deleted 🗑️`);
+    });
 });
 
+// // Delete Note
+// app.delete('/api/notes:id', (req, res) => {
+//     // Assign an id to a temp variable
+//     let id = req.params.id;
+//     // Read the db.json
+//     fs.readFile('.db/db.json', 'utf-8', (error, data) => {
+//         if (error) {
+//             console.log(error);
+//         }
+//         let noteData = JSON.parse(data);
+//         for (var i = 0; i < noteData.length; i++) {
+//             if (id === noteData[i].id) {
+//                 noteData.splice(i, 2);
+//                 fs.writeFile('.db/db.json', JSON.stringify(noteData, null, 4), (error) => {
+//                     if (error) {
+//                         console.log(error);
+//                     } else {
+//                         console.log('Deleted Note');
+//                     }
+//                 });
+//             }
+//         }
+
+//     });
+//     res.end();
+// });
+
+
 app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, '/public/index.html'));
+    res.sendFile(path.join(__dirname, './public/index.html'));
 })
 
 app.listen(PORT, () =>
