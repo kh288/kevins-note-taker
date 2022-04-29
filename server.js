@@ -13,11 +13,6 @@ app.use(express.static('public'));
 
 var PORT = process.env.PORT || 3001;
 
-// Set the default to index.html
-app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, './public/index.html'));
-})
-
 // notes brings them to the notes.html file
 app.get('/notes', (req, res) => {
     res.sendFile(path.join(__dirname, './public/notes.html'));
@@ -103,6 +98,11 @@ app.delete('/api/notes/:id', (req, res) => {
         });
     });
     res.end();
+});
+
+// Set the default to index.html
+app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, './public/index.html'));
 });
 
 // Announce port that its listening to
