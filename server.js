@@ -78,7 +78,7 @@ app.post('/api/notes', (req, res) => {
     }
 });
 
-// Delete Note
+// DELETE request for the note
 app.delete('/api/notes/:id', (req, res) => {
     // Get the id from the request params
     let noteId = req.params.id;
